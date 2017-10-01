@@ -8,8 +8,13 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
+import com.estimote.coresdk.cloud.api.CloudCallback;
+import com.estimote.coresdk.cloud.api.EstimoteCloud;
+import com.estimote.coresdk.cloud.model.BeaconInfo;
 import com.estimote.coresdk.common.config.EstimoteSDK;
+import com.estimote.coresdk.common.exception.EstimoteCloudException;
 import com.estimote.coresdk.common.requirements.SystemRequirementsChecker;
 import com.estimote.coresdk.observation.region.RegionUtils;
 import com.estimote.coresdk.observation.utils.Proximity;
@@ -22,11 +27,13 @@ public class MainActivity extends AppCompatActivity {
 
     //Creates the beacon manager
     //public final BeaconManager beaconManager = new BeaconManager(getApplicationContext());
+    private TextView textView1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        textView1 = (TextView) findViewById(R.id.textView1);
         //midlertidig
         final BeaconManager beaconManager = new BeaconManager(getApplicationContext());
         //Allows the SDK to communicate to the cloud
@@ -46,10 +53,22 @@ public class MainActivity extends AppCompatActivity {
                 String beaconId = "[7c8259db97a28a6609b5da060954ef11]";
 
                 for (EstimoteLocation beacon : beacons) {
-                    Log.d("LocationListener", "Nearby beacons: " + beacon.id.toString()+" - "+RegionUtils.computeProximity(beacon).toString());
+
+                    //Log.d("LocationListener", "Nearby beacons: " + beacon.id.toString()+" - "+RegionUtils.computeProximity(beacon).toString());
                     if (beacon.id.toString().equals(beaconId) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
                         Log.d("Green beacon", "Found it!");
                         showNotification("Hello world", "Looks like you're near a beacon.");
+                        EstimoteCloud.getInstance().fetchBeaconDetails(beacon.id, new CloudCallback<BeaconInfo>() {
+                            @Override
+                            public void success(BeaconInfo beaconInfo) {
+                                textView1.setText("Vehicle with regno "+String.valueOf(beaconInfo.name)+" was found!");
+                            }
+
+                            @Override
+                            public void failure(EstimoteCloudException serverException) {
+                                Log.d("Green beacon", "No name!");
+                            }
+                        });
                     }
 
                 }
@@ -93,4 +112,5 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.notify(1, notification);
         notificationAlreadyShown = true;
     }
+
 }

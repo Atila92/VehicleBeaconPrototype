@@ -7,8 +7,8 @@
     tools:context="com.example.atila.vehiclebeaconprototype.MainActivity">
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="183dp"
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
         android:layout_height="82dp"
         android:text="Searching.."
         android:textAlignment="center"
