@@ -8,9 +8,9 @@
 
     <TextView
         android:id="@+id/textView1"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="82dp"
-        android:text="Searching.."
+        android:text="Press reset to start"
         android:textAlignment="center"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -19,5 +19,13 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.502" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reset"
+        tools:layout_editor_absoluteX="147dp"
+        tools:layout_editor_absoluteY="445dp" />
 
 </android.support.constraint.ConstraintLayout>

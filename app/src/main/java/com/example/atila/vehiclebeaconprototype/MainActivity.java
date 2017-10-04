@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.estimote.coresdk.cloud.api.CloudCallback;
@@ -26,54 +28,35 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     //Creates the beacon manager
-    //public final BeaconManager beaconManager = new BeaconManager(getApplicationContext());
+    public BeaconManager beaconManager;
     private TextView textView1;
+    private Button button1;
+    private Boolean test =true;
+    private boolean notificationAlreadyShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView1 = (TextView) findViewById(R.id.textView1);
+        button1 = (Button) findViewById(R.id.button);
+
         //midlertidig
-        final BeaconManager beaconManager = new BeaconManager(getApplicationContext());
+        beaconManager = new BeaconManager(getApplicationContext());
         //Allows the SDK to communicate to the cloud
         EstimoteSDK.initialize(getApplicationContext(), "vehiclebeaconprototype-j17", "907e4bf380bf666da2634cf7c8fbec02");
 
-        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-            @Override public void onServiceReady() {
-                beaconManager.startLocationDiscovery();
+        button1.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                //textView1.setText("Searching..");
+                notificationAlreadyShown = false;
+                findVehicle();
             }
         });
 
-        beaconManager.setLocationListener(new BeaconManager.LocationListener() {
-            @Override
-            public void onLocationsFound(List<EstimoteLocation> beacons) {
 
-
-                String beaconId = "[7c8259db97a28a6609b5da060954ef11]";
-
-                for (EstimoteLocation beacon : beacons) {
-
-                    //Log.d("LocationListener", "Nearby beacons: " + beacon.id.toString()+" - "+RegionUtils.computeProximity(beacon).toString());
-                    if (beacon.id.toString().equals(beaconId) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
-                        Log.d("Green beacon", "Found it!");
-                        showNotification("Hello world", "Looks like you're near a beacon.");
-                        EstimoteCloud.getInstance().fetchBeaconDetails(beacon.id, new CloudCallback<BeaconInfo>() {
-                            @Override
-                            public void success(BeaconInfo beaconInfo) {
-                                textView1.setText("Vehicle with regno "+String.valueOf(beaconInfo.name)+" was found!");
-                            }
-
-                            @Override
-                            public void failure(EstimoteCloudException serverException) {
-                                Log.d("Green beacon", "No name!");
-                            }
-                        });
-                    }
-
-                }
-            }
-        });
 
 
     }
@@ -87,10 +70,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //beaconManager.disconnect();
+        beaconManager.disconnect();
     }
 
-    private boolean notificationAlreadyShown = false;
 
     public void showNotification(String title, String message) {
         if (notificationAlreadyShown) { return; }
@@ -111,6 +93,44 @@ public class MainActivity extends AppCompatActivity {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, notification);
         notificationAlreadyShown = true;
+    }
+
+    public void findVehicle(){
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override public void onServiceReady() {
+                beaconManager.startLocationDiscovery();
+            }
+        });
+        textView1.setText("Searching..");
+
+        beaconManager.setLocationListener(new BeaconManager.LocationListener() {
+            @Override
+            public void onLocationsFound(List<EstimoteLocation> beacons) {
+
+                String beaconId = "[7c8259db97a28a6609b5da060954ef11]";
+                for (EstimoteLocation beacon : beacons) {
+
+                    //Log.d("LocationListener", "Nearby beacons: " + beacon.id.toString()+" - "+RegionUtils.computeProximity(beacon).toString());
+                    if (beacon.id.toString().equals(beaconId) && RegionUtils.computeProximity(beacon) == Proximity.IMMEDIATE) {
+                        Log.d("Green beacon", "Found it!");
+                        showNotification("Hello world", "Looks like you're near a beacon.");
+                        EstimoteCloud.getInstance().fetchBeaconDetails(beacon.id, new CloudCallback<BeaconInfo>() {
+                            @Override
+                            public void success(BeaconInfo beaconInfo) {
+                                textView1.setText("Vehicle with regno " + String.valueOf(beaconInfo.name) + " was found!");
+                            }
+
+                            @Override
+                            public void failure(EstimoteCloudException serverException) {
+                                Log.d("Green beacon", "No name!");
+                            }
+                        });
+                    }
+
+                }
+            }
+        });
+        beaconManager.disconnect();
     }
 
 }
